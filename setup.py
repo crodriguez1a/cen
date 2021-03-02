@@ -52,7 +52,15 @@ setup(
             "configs/**/**/*.yaml",
         ],
     },
-    install_requires=requirements(),
+    install_requires=[
+        "hydra-core>=0.11,<1.0",
+        "numpy",
+        "pandas",
+        "scipy",
+        "scikit-learn",
+        "tensorflow>=2.0.0",
+        "transformers",
+    ],
     setup_requires=["setuptools>=38.6.0"],
     classifiers=[
         "Development Status :: 3 - Alpha",
