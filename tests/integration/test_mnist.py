@@ -104,5 +104,34 @@ def test_mnist(model):
             datasets[set_name] = inputs, labels
 
         # Test train and eval.
-        model, _ = train(cfg, datasets["train"], datasets["valid"])
-        evaluate(cfg, datasets, model=model)
+        build_kwargs = {
+            "model_name": cfg.model.name,
+            "model_kwargs": cfg.model.kwargs,
+            "network_kwargs": cfg.network,
+            "loss_kwargs": cfg.train.loss,
+            "optimizer_kwargs": cfg.optimizer,
+            "checkpoint_kwargs": cfg.train.checkpoint_kwargs,
+            "tensorboard_kwargs": cfg.train.tensorboard,
+            "eval_metrics": cfg.eval.metrics,
+        }
+
+        model, _ = train(
+            datasets["train"],
+            cfg.train.shuffle_buffer_size,
+            cfg.train.batch_size,
+            epochs=cfg.train.epochs,
+            seed=cfg.run.seed,
+            build_kwargs=build_kwargs,
+            validation_data=datasets["valid"],
+            checkpoint_kwargs=cfg.train.checkpoint_kwargs,
+            verbose=cfg.train.verbose,
+        )
+
+        evaluate(
+                datasets,
+                cfg.eval.metrics,
+                build_kwargs=build_kwargs,
+                model=model,
+                batch_size=cfg.eval.batch_size,
+                verbose=cfg.eval.verbose
+        )

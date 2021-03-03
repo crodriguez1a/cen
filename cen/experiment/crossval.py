@@ -28,19 +28,29 @@ from cen.experiment.eval import evaluate
 logger = logging.getLogger(__name__)
 
 
-def cross_validate(cfg, datasets):
+def cross_validate(
+    datasets,
+    train_args,
+    train_kwargs,
+    evaluate_args,
+    evaluate_kwargs,
+    n_splits=5,
+    shuffle=False,
+    random_state=None,
+    verbose=False,
+):
     # Merge train, validation, and test data.
     inputs, labels = data.merge(datasets)
 
     # Build stratified k-fold cross-validation splitter.
     skf = StratifiedKFold(
-        n_splits=cfg.crossval.splits,
-        shuffle=cfg.crossval.shuffle,
-        random_state=cfg.crossval.seed,
+        n_splits=n_splits,
+        shuffle=shuffle,
+        random_state=random_state,
     )
     cv_splits = skf.split(inputs[0], labels.nonzero()[1])
 
-    if cfg.crossval.verbose:
+    if verbose:
         logger.info(f"Cross-validating...")
 
     # Run cross-validation.
@@ -50,9 +60,11 @@ def cross_validate(cfg, datasets):
             (inputs, labels), train_ids=train_ids, test_ids=test_ids
         )
         # Train.
-        train(cfg, datasets["train"], validation_data=datasets["valid"])
+        train(*train_args, **train_kwargs)
+
         # Evaluate.
-        metrics = evaluate(cfg, datasets)
+        metrics = evaluate(*evaluate_args, **evaluate_kwargs)
+
         # Aggregate.
         for set_name, metrics_dict in metrics.items():
             for name, value in metrics_dict.items():
@@ -60,8 +72,8 @@ def cross_validate(cfg, datasets):
                     name, []
                 ) + [value]
         # Log.
-        if cfg.crossval.verbose:
-            logger.info(f"Fold {i + 1}/{cfg.crossval.splits}:")
+        if verbose:
+            logger.info(f"Fold {i + 1}/{n_splits}:")
             for set_name, metrics_dict in all_metrics.items():
                 metrics_mean_std = zip(
                     map(np.mean, metrics_dict.values()),

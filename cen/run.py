@@ -49,9 +49,56 @@ def main(cfg):
         logical_gpus = tf.config.experimental.list_logical_devices("GPU")
         print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
 
+    build_kwargs = {
+        "model_name": cfg.model.name,
+        "model_kwargs": cfg.model.kwargs,
+        "network_kwargs": cfg.network,
+        "loss_kwargs": cfg.train.loss,
+        "optimizer_kwargs": cfg.optimizer,
+        "checkpoint_kwargs": cfg.train.checkpoint_kwargs,
+        "tensorboard_kwargs": cfg.train.tensorboard,
+        "eval_metrics": cfg.eval.metrics,
+    }
+
+    train_args = (
+        datasets["train"],
+        cfg.train.shuffle_buffer_size,
+        cfg.train.batch_size,
+    )
+
+    train_kwargs = {
+        "epochs": cfg.train.epochs,
+        "seed": cfg.run.seed,
+        "build_kwargs": build_kwargs,
+        "validation_data": datasets["valid"],
+        "checkpoint_kwargs": cfg.train.checkpoint_kwargs,
+        "verbose": cfg.train.verbose,
+    }
+
+    evaluate_args = (
+        datasets,
+        cfg.eval.metrics,
+    )
+
+    evaluate_kwargs = {
+        "build_kwargs": build_kwargs,
+        "batch_size": cfg.eval.batch_size,
+        "verbose": cfg.eval.verbose,
+    }
+
     # Cross-validation.
     if cfg.crossval:
-        metrics = cross_validate(cfg, datasets)
+        metrics = cross_validate(
+            datasets,
+            train_args,
+            train_kwargs,
+            evaluate_args,
+            evaluate_kwargs,
+            n_splits=cfg.crossval.splits,
+            shuffle=cfg.crossval.shuffle,
+            random_state=cfg.crossval.seed,
+            verbose=cfg.crossval.verbose
+        )
         save_path = os.path.join(os.getcwd(), "cv.metrics.pkl")
         with open(save_path, "wb") as fp:
             pickle.dump(metrics, fp)
@@ -59,15 +106,16 @@ def main(cfg):
     # Supervised training.
     else:
         model = None
+
         # Train.
         if cfg.train:
-            model, info = train(cfg, datasets["train"], datasets["valid"])
+            model, info = train(*train_args, **train_kwargs)
             save_path = os.path.join(os.getcwd(), "train.history.pkl")
             with open(save_path, "wb") as fp:
                 pickle.dump(info["history"], fp)
         # Evaluate.
         if cfg.eval:
-            metrics = evaluate(cfg, datasets, model=model)
+            metrics = evaluate(*evaluate_args, model=model, **evaluate_kwargs)
             save_path = os.path.join(os.getcwd(), "eval.metrics.pkl")
             with open(save_path, "wb") as fp:
                 pickle.dump(metrics, fp)

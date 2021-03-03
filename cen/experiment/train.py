@@ -24,37 +24,49 @@ from cen.experiment import utils
 logger = logging.getLogger(__name__)
 
 
-def train(cfg, train_data, validation_data=None):
+def train(
+    train_data,
+    shuffle_buffer_size,
+    batch_size,
+    epochs=1,
+    seed=None,
+    build_kwargs=None,
+    validation_data=None,
+    checkpoint_kwargs=None,
+    verbose=1
+):
     logger.info("Building...")
+
+    build_kwargs = build_kwargs if build_kwargs else {}
 
     # Build the model.
     input_dtypes = utils.get_input_dtypes(train_data)
     input_shapes = utils.get_input_shapes(train_data)
     output_shape = utils.get_output_shape(train_data)
     model, info = utils.build(
-        cfg,
         input_dtypes=input_dtypes,
         input_shapes=input_shapes,
         output_shape=output_shape,
         mode=utils.ModeKeys.TRAIN,
+        **build_kwargs
     )
 
     # Build datasets.
     train_dataset = (
         tf.data.Dataset.from_tensor_slices(train_data)
         .shuffle(
-            cfg.train.shuffle_buffer_size,
+            shuffle_buffer_size,
             reshuffle_each_iteration=True,
-            seed=cfg.run.seed,
+            seed=seed,
         )
-        .batch(cfg.train.batch_size)
+        .batch(batch_size)
         .prefetch(tf.data.experimental.AUTOTUNE)
     )
     validation_dataset = None
     if validation_data is not None:
         validation_dataset = (
             tf.data.Dataset.from_tensor_slices(validation_data)
-            .batch(cfg.train.batch_size)
+            .batch(batch_size)
             .prefetch(tf.data.experimental.AUTOTUNE)
         )
 
@@ -63,14 +75,14 @@ def train(cfg, train_data, validation_data=None):
     history = model.fit(
         train_dataset,
         callbacks=info["callbacks"],
-        epochs=cfg.train.epochs,
+        epochs=epochs,
         validation_data=validation_dataset,
-        verbose=cfg.train.verbose,
+        verbose=verbose,
     )
     info["history"] = history.history
 
     checkpoint_path = os.path.join(os.getcwd(), "checkpoint")
-    if cfg.train.checkpoint_kwargs is None:
+    if checkpoint_kwargs is None:
         # Save model weights if checkpointing was off.
         model.save_weights(checkpoint_path)
     else:

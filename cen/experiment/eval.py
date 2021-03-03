@@ -21,7 +21,17 @@ from cen.experiment import utils
 logger = logging.getLogger(__name__)
 
 
-def evaluate(cfg, datasets, model=None):
+def evaluate(
+    datasets,
+    eval_metrics,
+    build_kwargs=None,
+    model=None,
+    batch_size=None,
+    verbose=1
+):
+
+    build_kwargs = build_kwargs if build_kwargs else {}
+
     if model is None:
         logger.info("Building...")
 
@@ -30,11 +40,11 @@ def evaluate(cfg, datasets, model=None):
         output_shape = utils.get_output_shape(datasets["test"])
         if model is None:
             model = utils.build(
-                cfg,
                 input_dtypes=input_dtypes,
                 input_shapes=input_shapes,
                 output_shape=output_shape,
                 mode=utils.ModeKeys.EVAL,
+                **build_kwargs
             )
 
     logger.info("Evaluating...")
@@ -43,9 +53,9 @@ def evaluate(cfg, datasets, model=None):
     for set_name, dataset in datasets.items():
         if dataset is None or dataset[1] is None:
             continue
-        metric_names = ["loss"] + list(cfg.eval.metrics.keys())
+        metric_names = ["loss"] + list(eval_metrics.keys())
         metric_values = model.evaluate(
-            *dataset, batch_size=cfg.eval.batch_size, verbose=cfg.eval.verbose
+            *dataset, batch_size=batch_size, verbose=verbose
         )
         metrics[set_name] = dict(zip(metric_names, metric_values))
         logger.info(f"{set_name} metrics: {metrics[set_name]}")
