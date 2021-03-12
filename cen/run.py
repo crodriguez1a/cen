@@ -38,7 +38,7 @@ def run_experiment(cfg):
     tf.random.set_seed(cfg.run.seed)
 
     logger.info("Loading data...")
-    datasets = data.load(**cfg.dataset)
+    datasets = data.load(**cfg.dataset.as_dict())
 
     # Limit GPU memory growth.
     gpus = tf.config.experimental.list_physical_devices("GPU")
@@ -51,7 +51,7 @@ def run_experiment(cfg):
     build_kwargs = {
         "model_name": cfg.model.name,
         "model_kwargs": cfg.model.kwargs,
-        "network_kwargs": cfg.network,
+        "network_kwargs": cfg.network.kwargs,
         "loss_kwargs": cfg.train.loss,
         "optimizer_kwargs": cfg.optimizer,
         "checkpoint_kwargs": cfg.train.checkpoint_kwargs,

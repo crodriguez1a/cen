@@ -9,10 +9,12 @@ class ConfigBase:
 
     @classmethod
     def from_dict(cls, d):
-        return cls(**d)
+        if d is not None:
+            return cls(**d)
+        return None
 
     def pretty(self):
-        pp.pprint(self.as_dict())
+        return pp.pformat(self.as_dict())
 
 
 @dataclass
@@ -118,27 +120,28 @@ class ExperimentConfig(ConfigBase):
 
     def as_dict(self):
         return {
-            "run": self.run.as_dict(),
-            "dataset": self.dataset.as_dict(),
-            "model": self.model.as_dict(),
-            "network": self.network.as_dict(),
-            "train": self.train.as_dict(),
+            "run": self.run.as_dict() if self.run else None,
+            "dataset": self.dataset.as_dict() if self.dataset else None,
+            "model": self.model.as_dict() if self.model else None,
+            "network": self.network.as_dict() if self.network else None,
+            "train": self.train.as_dict() if self.train else None,
             "optimizer": self.optimizer,
-            "evaluation": self.evaluation.as_dict(),
-            "crossval": self.crossval.as_dict()
+            "evaluation":
+                self.evaluation.as_dict() if self.evaluation else None,
+            "crossval": self.crossval.as_dict() if self.crossval else None
         }
 
     @classmethod
     def from_dict(cls, d):
         return cls(
-            run=RunConfig.from_dict(d["run"]),
-            dataset=DatasetConfig.from_dict(d["dataset"]),
-            model=ModelConfig.from_dict(d["model"]),
-            network=NetworkConfig.from_dict(d["network"]),
-            train=TrainConfig.from_dict(d["train"]),
-            optimizer=d["optimizer"],
-            evaluation=EvalConfig.from_dict(d["evaluation"]),
-            crossval=CrossvalConfig.from_dict(d["crossval"])
+            run=RunConfig.from_dict(d.get("run")),
+            dataset=DatasetConfig.from_dict(d.get("dataset")),
+            model=ModelConfig.from_dict(d.get("model")),
+            network=NetworkConfig.from_dict(d.get("network")),
+            train=TrainConfig.from_dict(d.get("train")),
+            optimizer=d.get("optimizer"),
+            evaluation=EvalConfig.from_dict(d.get("evaluation")),
+            crossval=CrossvalConfig.from_dict(d.get("crossval"))
         )
 
     @property
