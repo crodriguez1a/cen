@@ -31,7 +31,35 @@ def load(
     merge_train_valid=False,
     permute=True,
 ):
-    """Loads the dataset as a dictionary of subsets."""
+    """
+    Loads a dataset by name as a dictionary of subsets.
+
+    Parameters
+    ----------
+    name : str
+        Name of the dataset to load. One of "mnist", "fashion_mnist","imdb",
+        "satellite", "support2", and "physionet".
+    context_kwargs : dict, optional
+        Keyword arguments for the `load_data` method of the module in
+        `cen.data` with the same name as "name", by default None.
+    feature_kwargs : dict, optional
+        Keyword arguments for the `load_interp_features` method of the module
+        in `cen.data` with the same name as "name", by default None.
+    max_train_size : int, optional
+        Max number of data samples to include for training, by default None.
+    merge_train_valid : bool, optional
+        Indicates whether or not to merge the training and validation data, by
+        default False.
+    permute : bool, optional
+        Indicates whether or not to return a (shuffled) random permutation of
+        the dataset, by default True
+
+    Returns
+    -------
+    dict { str : tuple of np.ndarray }
+        Tuples (X, y) mapped to names "train", "valid", and "test".
+    """
+
     if name == "mnist":
         load_data = mnist.load_data
         load_interp_features = mnist.load_interp_features

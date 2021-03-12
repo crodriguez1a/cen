@@ -35,6 +35,40 @@ def train(
     checkpoint_kwargs=None,
     verbose=1
 ):
+    """
+    Trains a TensorFlow model using the given dataset and params.
+
+    Parameters
+    ----------
+    train_data : tuple of (np.ndarray, np.ndarray)
+        Tuple (X, y) of training data.
+    shuffle_buffer_size : int
+        The `buffer_size` parameter for the method
+        `tensorflow.data.Dataset.shuffle`.
+    batch_size : int
+        Parameter for the method `tensorflow.data.Dataset.batch`.
+    epochs : int, optional
+        Number of training epochs, by default 1
+    seed : int, optional
+        Random seed for the method tensorflow.data.Dataset.shuffle`.
+    build_kwargs : dict, optional
+        Keyword arguments for `cen.experiment.utils.build`, by default None.
+    validation_data : tuple of (np.ndarray, np.ndarray), optional
+        Tuple (X, y) of validation data, by default None.
+    checkpoint_kwargs : dict, optional
+        Keyword arguments for the method
+        `tensorflow.keras.callbacks.ModelCheckpoint`, by default None.
+    verbose : int, optional
+        Sets verbosity level during TensorFlow training, by default 1.
+
+    Returns
+    -------
+    tensorflow.keras.models.Model
+        The trained model.
+    dict
+        Information about the model's "context" layer and "encodings",
+        if applicable.
+    """
     logger.info("Building...")
 
     build_kwargs = build_kwargs if build_kwargs else {}

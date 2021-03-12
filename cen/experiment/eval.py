@@ -29,7 +29,34 @@ def evaluate(
     batch_size=None,
     verbose=1
 ):
+    """
+    Evaluates performance of a provided model, or a model built using provided
+    parameters, using the specified metrics.
 
+    Parameters
+    ----------
+    datasets : dict { str : tuple of np.ndarray }
+        Tuples (X, y) mapped to names "train", "valid", and "test".
+    eval_metrics : dict of {str : dict}
+        Mapping of user selected labels to keyword arguments for the method
+        `cen.metrics.get`, by default None.
+    build_kwargs : dict, optional
+        Keyword arguments for `cen.experiment.utils.build`, used to build a
+        model if one is not provided, by default None.
+    model : tensorflow.keras.models.Model, optional
+        Pre-trained model to evaluate, by default None.
+    batch_size : int, optional
+        `batch_size` parameter for `tensorflow.keras.models.Model.evaluate`,
+        by default None.
+    verbose : int, optional
+        Sets verbosity level during TensorFlow evaluation, by default 1.
+
+    Returns
+    -------
+    dict { str: dict { str: float } }
+        Mapping of metric names to their values, for each of the "train",
+        "valid", and "test" datasets.
+    """
     build_kwargs = build_kwargs if build_kwargs else {}
 
     if model is None:

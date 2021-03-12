@@ -29,8 +29,7 @@ from cen.experiment import train, evaluate, cross_validate
 logger = logging.getLogger(__name__)
 
 
-@hydra.main(config_path="configs/config.yaml", strict=False)
-def main(cfg):
+def run_experiment(cfg):
     logger.info("Experiment config:\n" + cfg.pretty())
 
     # Set random seeds.
@@ -119,6 +118,11 @@ def main(cfg):
             save_path = os.path.join(os.getcwd(), "eval.metrics.pkl")
             with open(save_path, "wb") as fp:
                 pickle.dump(metrics, fp)
+
+
+@hydra.main(config_path="configs/config.yaml", strict=False)
+def main(cfg):
+    run_experiment(cfg)
 
 
 if __name__ == "__main__":
